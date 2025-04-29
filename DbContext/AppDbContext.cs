@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using ApiLocadora.Models;
 
-namespace ApiLocadora.DbContext
+namespace ApiLocadora.LegacyDbContext
 {
     /*
     public static class AppDbContext

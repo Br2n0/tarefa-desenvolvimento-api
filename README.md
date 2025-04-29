@@ -9,6 +9,73 @@ API de gerenciamento de filmes para uma locadora.
 Este projeto foi atualizado para usar Entity Framework Core com acesso a banco de dados MySQL.
 As listas estáticas foram substituídas por DbSets, permitindo persistência real dos dados.
 
+## Resolução do erro "Option 'trusted_connection' not supported"
+
+Se você encontrar o erro `System.ArgumentException: Option 'trusted_connection' not supported` ao executar o projeto, siga estas etapas:
+
+### 1. Verificar a string de conexão
+
+O erro ocorre porque a string de conexão contém opções que são específicas do SQL Server e não são suportadas pelo MySQL. A string de conexão correta deve ser:
+
+```json
+"ConnectionStrings": {
+  "DefaultConnection": "Server=localhost;Database=Locadora_db;User=root;Password=root;Port=3306;"
+}
+```
+
+Verifique se o arquivo `appsettings.json` contém esta string de conexão e remova as opções `Trusted_Connection` e `TrustServerCertificate` que não são suportadas pelo MySQL.
+
+### 2. Instalar e configurar o MySQL
+
+Para que a aplicação funcione corretamente, você precisa:
+
+1. **Instalar o MySQL Server**:
+   - Baixe e instale o MySQL Server do site oficial: https://dev.mysql.com/downloads/mysql/
+   - Durante a instalação, defina a senha "root" para o usuário "root"
+
+2. **Criar o banco de dados após a instalação**:
+   - Abra o MySQL Workbench ou outro cliente MySQL
+   - Conecte usando usuário "root" e senha "root"
+   - Execute o seguinte comando SQL:
+     ```sql
+     CREATE DATABASE Locadora_db;
+     ```
+
+3. **Verificar se o MySQL está em execução**:
+   - No Windows, você pode verificar nos Serviços (services.msc)
+   - Certifique-se de que o serviço "MySQL" esteja em execução
+
+4. **Testar a conexão**:
+   - Você pode testar a conexão usando o MySQL Workbench ou o comando:
+     ```
+     mysql -u root -p
+     ```
+   - Digite a senha "root" quando solicitado
+   - Se conseguir conectar, execute:
+     ```sql
+     SHOW DATABASES;
+     ```
+   - Confirme que "Locadora_db" está na lista
+
+### 3. Aplicar as migrações
+
+Após configurar o MySQL, aplique as migrações para criar o esquema do banco de dados:
+
+```
+dotnet ef migrations add InitialCreate
+dotnet ef database update
+```
+
+### 4. Executar a aplicação
+
+Agora você pode executar a aplicação e acessar o Swagger:
+
+```
+dotnet run
+```
+
+Acesse o Swagger UI em: http://localhost:5000/swagger ou https://localhost:5001/swagger (a URL exata será mostrada no console ao iniciar a aplicação).
+
 ### Como executar as migrações
 
 Para criar e aplicar as migrações do banco de dados, siga os passos abaixo:
