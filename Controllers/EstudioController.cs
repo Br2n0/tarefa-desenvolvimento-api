@@ -1,9 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using ApiLocadora.Dtos;
 using ApiLocadora.Models;
-using ApiLocadora.DbContext;
+// Comentado o import do contexto estático
+// using ApiLocadora.DbContext;
+using ApiLocadora.dataContexts;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ApiLocadora.Controllers
 {
@@ -11,20 +15,36 @@ namespace ApiLocadora.Controllers
     [ApiController]
     public class EstudioController : ControllerBase
     {
+        // Novo - DbContext do Entity Framework
+        private readonly AppDbContext _context;
+        
+        // Novo construtor com injeção de dependência
+        public EstudioController(AppDbContext context)
+        {
+            _context = context;
+        }
+        
         // GET: estudios
         [HttpGet]
-        public IActionResult Buscar()
+        public async Task<IActionResult> Buscar()
         {
-            // Retorna todos os estúdios
-            return Ok(AppDbContext.Estudios);
+            // Código antigo:
+            // return Ok(AppDbContext.Estudios);
+            
+            // Novo código usando Entity Framework:
+            var estudios = await _context.Estudios.ToListAsync();
+            return Ok(estudios);
         }
 
         // GET: estudios/{id}
         [HttpGet("{id}")]
-        public IActionResult BuscarPorId(Guid id)
+        public async Task<IActionResult> BuscarPorId(Guid id)
         {
-            // Busca o estúdio pelo ID
-            var estudio = AppDbContext.Estudios.FirstOrDefault(e => e.Id == id);
+            // Código antigo:
+            // var estudio = AppDbContext.Estudios.FirstOrDefault(e => e.Id == id);
+            
+            // Novo código usando Entity Framework:
+            var estudio = await _context.Estudios.FindAsync(id);
             
             // Se não encontrou, retorna 404 Not Found
             if (estudio == null)
@@ -38,7 +58,7 @@ namespace ApiLocadora.Controllers
 
         // POST: estudios
         [HttpPost]
-        public IActionResult Cadastrar([FromBody] EstudioDto estudioDto)
+        public async Task<IActionResult> Cadastrar([FromBody] EstudioDto estudioDto)
         {
             // Cria um novo estúdio com os dados do DTO
             var estudio = new Estudio
@@ -47,8 +67,12 @@ namespace ApiLocadora.Controllers
                 Distribuidor = estudioDto.Distribuidor
             };
             
-            // Adiciona o estúdio à lista
-            AppDbContext.Estudios.Add(estudio);
+            // Código antigo:
+            // AppDbContext.Estudios.Add(estudio);
+            
+            // Novo código usando Entity Framework:
+            _context.Estudios.Add(estudio);
+            await _context.SaveChangesAsync();
             
             // Retorna o estúdio criado com o status 201 Created
             return CreatedAtAction(nameof(BuscarPorId), new { id = estudio.Id }, estudio);
@@ -56,10 +80,13 @@ namespace ApiLocadora.Controllers
 
         // PUT: estudios/{id}
         [HttpPut("{id}")]
-        public IActionResult Atualizar(Guid id, [FromBody] EstudioDto estudioDto)
+        public async Task<IActionResult> Atualizar(Guid id, [FromBody] EstudioDto estudioDto)
         {
-            // Busca o estúdio pelo ID
-            var estudio = AppDbContext.Estudios.FirstOrDefault(e => e.Id == id);
+            // Código antigo:
+            // var estudio = AppDbContext.Estudios.FirstOrDefault(e => e.Id == id);
+            
+            // Novo código usando Entity Framework:
+            var estudio = await _context.Estudios.FindAsync(id);
             
             // Se não encontrou, retorna 404 Not Found
             if (estudio == null)
@@ -71,16 +98,22 @@ namespace ApiLocadora.Controllers
             estudio.Nome = estudioDto.Nome;
             estudio.Distribuidor = estudioDto.Distribuidor;
             
+            // Novo código usando Entity Framework:
+            await _context.SaveChangesAsync();
+            
             // Retorna o estúdio atualizado
             return Ok(estudio);
         }
         
         // DELETE: estudios/{id}
         [HttpDelete("{id}")]
-        public IActionResult Remover(Guid id)
+        public async Task<IActionResult> Remover(Guid id)
         {
-            // Busca o estúdio pelo ID
-            var estudio = AppDbContext.Estudios.FirstOrDefault(e => e.Id == id);
+            // Código antigo:
+            // var estudio = AppDbContext.Estudios.FirstOrDefault(e => e.Id == id);
+            
+            // Novo código usando Entity Framework:
+            var estudio = await _context.Estudios.FindAsync(id);
             
             // Se não encontrou, retorna 404 Not Found
             if (estudio == null)
@@ -88,15 +121,23 @@ namespace ApiLocadora.Controllers
                 return NotFound($"Estúdio com ID {id} não encontrado");
             }
             
-            // Verifica se o estúdio está sendo usado por algum filme
-            var filmeComEstudio = AppDbContext.Filmes.FirstOrDefault(f => f.EstudioId == id);
+            // Código antigo:
+            // var filmeComEstudio = AppDbContext.Filmes.FirstOrDefault(f => f.EstudioId == id);
+            
+            // Novo código usando Entity Framework:
+            var filmeComEstudio = await _context.Filmes.FirstOrDefaultAsync(f => f.EstudioId == id);
+            
             if (filmeComEstudio != null)
             {
                 return BadRequest($"Não é possível remover o estúdio pois ele está sendo usado pelo filme '{filmeComEstudio.Titulo}'");
             }
             
-            // Remove o estúdio da lista
-            AppDbContext.Estudios.Remove(estudio);
+            // Código antigo:
+            // AppDbContext.Estudios.Remove(estudio);
+            
+            // Novo código usando Entity Framework:
+            _context.Estudios.Remove(estudio);
+            await _context.SaveChangesAsync();
             
             // Retorna 204 No Content para indicar sucesso sem conteúdo
             return NoContent();

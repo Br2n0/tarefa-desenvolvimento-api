@@ -1,9 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using ApiLocadora.Dtos;
 using ApiLocadora.Models;
-using ApiLocadora.DbContext;
+// Comentado o import do contexto estático
+// using ApiLocadora.DbContext;
+using ApiLocadora.dataContexts;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ApiLocadora.Controllers
 {
@@ -11,20 +15,36 @@ namespace ApiLocadora.Controllers
     [ApiController]
     public class GeneroController : ControllerBase
     {
+        // Novo - DbContext do Entity Framework
+        private readonly AppDbContext _context;
+        
+        // Novo construtor com injeção de dependência
+        public GeneroController(AppDbContext context)
+        {
+            _context = context;
+        }
+        
         // GET: generos
         [HttpGet]
-        public IActionResult Buscar()
+        public async Task<IActionResult> Buscar()
         {
-            // Retorna todos os gêneros
-            return Ok(AppDbContext.Generos);
+            // Código antigo:
+            // return Ok(AppDbContext.Generos);
+            
+            // Novo código usando Entity Framework:
+            var generos = await _context.Generos.ToListAsync();
+            return Ok(generos);
         }
 
         // GET: generos/{id}
         [HttpGet("{id}")]
-        public IActionResult BuscarPorId(Guid id)
+        public async Task<IActionResult> BuscarPorId(Guid id)
         {
-            // Busca o gênero pelo ID
-            var genero = AppDbContext.Generos.FirstOrDefault(g => g.Id == id);
+            // Código antigo:
+            // var genero = AppDbContext.Generos.FirstOrDefault(g => g.Id == id);
+            
+            // Novo código usando Entity Framework:
+            var genero = await _context.Generos.FindAsync(id);
             
             // Se não encontrou, retorna 404 Not Found
             if (genero == null)
@@ -38,7 +58,7 @@ namespace ApiLocadora.Controllers
 
         // POST: generos
         [HttpPost]
-        public IActionResult Cadastrar([FromBody] GeneroDto generoDto)
+        public async Task<IActionResult> Cadastrar([FromBody] GeneroDto generoDto)
         {
             // Cria um novo gênero com os dados do DTO
             var genero = new Genero
@@ -46,8 +66,12 @@ namespace ApiLocadora.Controllers
                 Nome = generoDto.Nome
             };
             
-            // Adiciona o gênero à lista
-            AppDbContext.Generos.Add(genero);
+            // Código antigo:
+            // AppDbContext.Generos.Add(genero);
+            
+            // Novo código usando Entity Framework:
+            _context.Generos.Add(genero);
+            await _context.SaveChangesAsync();
             
             // Retorna o gênero criado com o status 201 Created
             return CreatedAtAction(nameof(BuscarPorId), new { id = genero.Id }, genero);
@@ -55,10 +79,13 @@ namespace ApiLocadora.Controllers
 
         // PUT: generos/{id}
         [HttpPut("{id}")]
-        public IActionResult Atualizar(Guid id, [FromBody] GeneroDto generoDto)
+        public async Task<IActionResult> Atualizar(Guid id, [FromBody] GeneroDto generoDto)
         {
-            // Busca o gênero pelo ID
-            var genero = AppDbContext.Generos.FirstOrDefault(g => g.Id == id);
+            // Código antigo:
+            // var genero = AppDbContext.Generos.FirstOrDefault(g => g.Id == id);
+            
+            // Novo código usando Entity Framework:
+            var genero = await _context.Generos.FindAsync(id);
             
             // Se não encontrou, retorna 404 Not Found
             if (genero == null)
@@ -69,16 +96,22 @@ namespace ApiLocadora.Controllers
             // Atualiza os dados do gênero
             genero.Nome = generoDto.Nome;
             
+            // Novo código usando Entity Framework:
+            await _context.SaveChangesAsync();
+            
             // Retorna o gênero atualizado
             return Ok(genero);
         }
         
         // DELETE: generos/{id}
         [HttpDelete("{id}")]
-        public IActionResult Remover(Guid id)
+        public async Task<IActionResult> Remover(Guid id)
         {
-            // Busca o gênero pelo ID
-            var genero = AppDbContext.Generos.FirstOrDefault(g => g.Id == id);
+            // Código antigo:
+            // var genero = AppDbContext.Generos.FirstOrDefault(g => g.Id == id);
+            
+            // Novo código usando Entity Framework:
+            var genero = await _context.Generos.FindAsync(id);
             
             // Se não encontrou, retorna 404 Not Found
             if (genero == null)
@@ -86,15 +119,23 @@ namespace ApiLocadora.Controllers
                 return NotFound($"Gênero com ID {id} não encontrado");
             }
             
-            // Verifica se o gênero está sendo usado por algum filme
-            var filmeComGenero = AppDbContext.Filmes.FirstOrDefault(f => f.GeneroId == id);
+            // Código antigo:
+            // var filmeComGenero = AppDbContext.Filmes.FirstOrDefault(f => f.GeneroId == id);
+            
+            // Novo código usando Entity Framework:
+            var filmeComGenero = await _context.Filmes.FirstOrDefaultAsync(f => f.GeneroId == id);
+            
             if (filmeComGenero != null)
             {
                 return BadRequest($"Não é possível remover o gênero pois ele está sendo usado pelo filme '{filmeComGenero.Titulo}'");
             }
             
-            // Remove o gênero da lista
-            AppDbContext.Generos.Remove(genero);
+            // Código antigo:
+            // AppDbContext.Generos.Remove(genero);
+            
+            // Novo código usando Entity Framework:
+            _context.Generos.Remove(genero);
+            await _context.SaveChangesAsync();
             
             // Retorna 204 No Content para indicar sucesso sem conteúdo
             return NoContent();

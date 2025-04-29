@@ -1,8 +1,14 @@
-﻿using System;
+﻿// ARQUIVO OBSOLETO
+// Este arquivo foi substituído pelo Models/Filme.cs
+// Mantido apenas para referência e compatibilidade
+
+using System;
 using ApiLocadora.Models;
 
 namespace ApiLocadora
 {
+    // Classe obsoleta. Use ApiLocadora.Models.Filme em vez disso.
+    /*
     public class Filme
     {
         public Guid Id { get; set; } = Guid.NewGuid();
@@ -37,6 +43,26 @@ namespace ApiLocadora
         public string Genero { 
             get => this.GeneroObj?.Nome ?? string.Empty; 
             set {} 
+        }
+    }
+    */
+    
+    // Classe de compatibilidade que redireciona para o modelo correto
+    public class Filme : ApiLocadora.Models.Filme
+    {
+        // Esta classe herda todas as propriedades de ApiLocadora.Models.Filme
+        // e adiciona propriedades de compatibilidade
+
+        public Genero? GeneroObj 
+        { 
+            get => this.Genero; 
+            set => this.Genero = value; 
+        }
+        
+        public Estudio? EstudioObj 
+        { 
+            get => this.Estudio; 
+            set => this.Estudio = value; 
         }
     }
 }

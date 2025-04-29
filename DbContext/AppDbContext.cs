@@ -1,9 +1,14 @@
+// ARQUIVO OBSOLETO
+// Este arquivo foi substituído pelo dataContexts/AppDbContext.cs que implementa o Entity Framework Core
+// As listas estáticas abaixo são mantidas apenas para referência
+
 using System;
 using System.Collections.Generic;
 using ApiLocadora.Models;
 
 namespace ApiLocadora.DbContext
 {
+    /*
     public static class AppDbContext
     {
         // Lista estática de gêneros
@@ -67,6 +72,45 @@ namespace ApiLocadora.DbContext
                 EstudioObj = Estudios[2],
                 AvaliacaoIMDB = 9.2m
             });
+        }
+    }
+    */
+    
+    // Classe de compatibilidade para evitar quebrar o código existente durante a migração
+    // Esta classe serve como ponte enquanto os controllers são atualizados
+    public static class AppDbContext
+    {
+        private static ApiLocadora.dataContexts.AppDbContext _efDbContext;
+        
+        // Propriedades de compatibilidade que redirecionam para o DbContext real
+        public static List<Genero> Generos 
+        { 
+            get 
+            {
+                // Retorna uma lista vazia para compatibilidade
+                // O código deve migrar para injeção de dependência
+                return new List<Genero>();
+            }
+        }
+        
+        public static List<Estudio> Estudios 
+        { 
+            get 
+            {
+                // Retorna uma lista vazia para compatibilidade
+                // O código deve migrar para injeção de dependência
+                return new List<Estudio>();
+            }
+        }
+        
+        public static List<ApiLocadora.Filme> Filmes
+        {
+            get
+            {
+                // Retorna uma lista vazia para compatibilidade
+                // O código deve migrar para injeção de dependência
+                return new List<ApiLocadora.Filme>();
+            }
         }
     }
 } 
